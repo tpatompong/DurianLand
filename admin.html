@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <title>DurianLand</title>
+</head>
+<body>
+    <?php 
+    session_start();
+    require_once 'config/db.php';
+    if (!isset($_SESSION['user_login'])) {
+        $_SESSION['error'] = 'กรุณาเข้าสู่ระบบ';
+        header('location: index.html');
+    }
+    else{
+        $user_id = $_SESSION['user_login'];
+        $sql = "SELECT * FROM market";
+        $query = $conn->query($sql);
+    }
+    ?>
+    <div class="container">
+        <!-- Sidebar Section -->
+        <aside>
+            <div class="toggle">
+                <div class="logo">
+                    <img src="img/logo.jpg">
+                    <h2>ทุเรียน<span class="success">แลนด์</span></h2>
+                </div>
+                <div class="close" id="close-btn">
+                    <span class="material-icons-sharp">
+                        close
+                    </span>
+                </div>
+            </div>
+
+            <div class="sidebar">            
+                <a href="mkp.html"class="active">
+                    <span class="material-icons-sharp">
+                        shieldperson
+                    </span>
+                    <h3>ผู้ดูแลระบบ</h3>
+                </a>
+                         
+                <a href="index.html">
+                    <span class="material-icons-sharp">
+                        logout
+                    </span>
+                    <h3>ออกจากระบบ</h3>
+                </a>
+            </div>
+        </aside>
+        <!-- End of Sidebar Section -->
+
+          <!-- Main Content -->
+          <main>
+            <h1>ผู้ดูแลระบบ</h1>
+            <div class="recent-orders">      
+                <table>
+                    <thead>
+                        <tr>
+                            <th>พันธุ์ทุเรียน</th>
+                            <th>เกรด</th>
+                            <th>ตลาดสี่มุมเมือง</th>
+                            <th>ตลาดไท</th>
+                        </tr>
+                        <?php foreach($query as $data) {?>
+                            <tr>
+                                <td><?=$data['d_name'] ?></td>
+                                <td><?=$data['grade'] ?></td>
+                                <td><?=$data['mar1'] ?></td>
+                                <td><?=$data['mar2'] ?></td>
+                            </tr>
+                        <?php } ?>
+                        </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+           
+            <div class="analyse">
+                <div class="sales">
+                    <h2>คำนวณราคาซื้อขาย</h2>
+                    <div class="status">     
+                        <form class = admin action="admin.php" method="post">           
+                            <br></br>
+                            <h4 for="in">พันธุ์ทุเรียน : </h4>
+                            <select id="d_name" name="d_name">
+                                <option value="ก้านยาว">ก้านยาว</option>
+                                <option value="หมอนทอง">หมอนทอง</option>
+                                <option value="ชะนี">ชะนี</option>
+                                <option value="กระดุม">กระดุม</option>
+                                <option value="พวงณี">พวงมณี</option>
+                            </select>
+                            <br></br>
+                            <h4 for="come">เกรด : </h4>
+                            <select id="grade" name="grade">
+                                <option value="A">A</option>
+                                <option value="B">B</option>
+                                <option value="C">C</option>
+                            </select>
+                            <br></br>
+                            <h4 for="in">ตลาดสี่มุมเมือง : </h4>
+                            <input type="text" id="mar1" name="mar1" required><h4 >บาท</h4><br></br>
+                            <h4 for="come">ตลาดไท : </h4>
+                            <input type="text" id="mar2" name="mar2" required><h4 >บาท</h4><br></br>    
+                            <button type="submit" id="submit" name ="admin" >บันทึก</button>                    
+                        </form>
+                    </div>
+                </div>
+                <div class="status">  
+                    <h2>แหล่งขายผลผลิต</h2>           
+                        <a href="https://talaadthai.com/products" target="_blank">
+                            <img src="https://talaadthai.com/logo.png" alt="taladthai"style="width:auto; height:80px; display: block; margin-left: auto; margin-right: auto;">
+                        </a> 
+                        <br></br> 
+                        <a href="https://www.simummuangmarket.com/product-list" target="_blank">
+                            <img src="https://www.simummuangmarket.com/_nuxt/img/logo.fbe7705.svg" alt="4mm" style="width:auto; height:80px; display: block; margin-left: auto; margin-right: auto;">
+                        </a>                                           
+                </div>
+                
+            </main>
+<!-- Right Section -->
+    <div class="right-section">
+            <div class="nav">
+                <div class="profile">
+                    <div class="info">
+                    <?php 
+                        if (isset($_SESSION['user_login'])) {
+                            $user_id = $_SESSION['user_login'];
+                            $stmt = $conn->query("SELECT * FROM users WHERE id = $user_id");
+                            $stmt->execute();
+                            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                            $stmt2 = $conn->query("SELECT * FROM farm WHERE id = $user_id");
+                            $stmt2->execute();
+                            $row2 = $stmt2->fetch(PDO::FETCH_ASSOC);
+                        }
+                    ?>
+
+                    <p>ผู้ใช้งาน, <b><?php echo $row['username'] ?></b></p>
+                    </div>
+                    <div class="profile-photo">
+                        <img src="img/profile-1.jpg">
+                    </div>
+                </div>
+               
+            </div>
+            <!-- End of Nav -->
+
+            <div class="user-profile">
+                <div class="logo">
+                    <img src="img/logo.jpg">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="mkp.js"></script>
+    <script src="index.js"></script>
+</body>
+
+</html>

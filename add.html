@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <title>DurianLand</title>
+</head>
+<body>
+    <?php 
+    session_start();
+    require_once 'config/db.php';
+    if (!isset($_SESSION['user_login'])) {
+        $_SESSION['error'] = 'กรุณาเข้าสู่ระบบ';
+        header('location: index.html');
+    }
+    else{
+        $user_id = $_SESSION['user_login'];
+        $stmt1 = $conn->prepare("SELECT st_per, en_per FROM per WHERE id = :user_id AND cur_per = '1'");
+        $stmt1->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+        $stmt1->execute();
+        // Check if there is a row with cur_per = '1'
+        if ($stmt1->rowCount() > 0) {
+            $row = $stmt1->fetch(PDO::FETCH_ASSOC);
+            $sql1 = "SELECT * FROM activity WHERE id = $user_id 
+            AND (add_type = 'ขายผลผลิต' OR add_type = 'อื่นๆ')
+            AND atv_date >= '$row[st_per]' and atv_date <= '$row[en_per]'       
+            ORDER BY atv_date DESC";
+        } else {
+            $sql1 = "SELECT * FROM activity WHERE id = $user_id 
+            AND (add_type = 'ขายผลผลิต' OR add_type = 'อื่นๆ')   
+            ORDER BY atv_date DESC";
+        }        
+        $query1 = $conn->query($sql1);
+    }
+    ?>
+    <div class="container">
+        <!-- Sidebar Section -->
+        <aside>
+            <div class="toggle">
+                <div class="logo">
+                    <img src="img/logo.jpg">
+                    <h2>ทุเรียน<span class="success">แลนด์</span></h2>
+                </div>
+                <div class="close" id="close-btn">
+                    <span class="material-icons-sharp">
+                        close
+                    </span>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <a href="home.html">
+                    <span class="material-icons-sharp">
+                        dashboard
+                    </span>
+                    <h3>แดชบอร์ด</h3>
+                </a>
+        
+                <a href="activity.html" class="active">
+                    <span class="material-icons-sharp">
+                        receipt_long
+                    </span>
+                    <h3>บันทึกกิจกรรม</h3>
+                </a>
+             
+                <a href="mkp.html">
+                    <span class="material-icons-sharp">
+                        storefront
+                    </span>
+                    <h3>ค้นหาแหล่งซื้อขาย</h3>
+                </a>
+             
+               
+                <a href="st.php">
+                    <span class="material-icons-sharp">
+                        settings
+                    </span>
+                    <h3>ตั้งค่า</h3>
+                </a>
+             
+                <a href="index.html">
+                    <span class="material-icons-sharp">
+                        logout
+                    </span>
+                    <h3>ออกจากระบบ</h3>
+                </a>
+            </div>
+        </aside>
+        <!-- End of Sidebar Section -->
+
+          <!-- Main Content -->
+          <main>
+           
+            <h1>บันทึกกิจกรรม</h1>
+            <div class="analyse">   
+                <div class="sales">
+                    <?php 
+                        if (isset($_SESSION['user_login'])) {
+                            $user_id = $_SESSION['user_login'];
+                            $stmt = $conn->prepare("SELECT st_per, en_per FROM per WHERE id = :user_id AND cur_per = '1'");
+                            $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+                            $stmt->execute();
+                            if ($stmt->rowCount() > 0) {
+                                $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                                global $row_st_per, $row_en_per;
+                                $row_st_per = $row['st_per'];
+                                $row_en_per = $row['en_per'];
+                                $expc = "SELECT SUM(money) FROM activity WHERE id = :user_id 
+                                    AND add_type IN ('ขายผลผลิต', 'อื่นๆ') 
+                                    AND atv_date >= '$row_st_per' and atv_date <= '$row_en_per'  ";
+                                $stmt1_expc = $conn->prepare($expc);
+                                $stmt1_expc->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+                                $stmt1_expc->execute();
+                                $sumexpc = $stmt1_expc->fetchColumn();
+                                echo '<br>';
+                                echo '<h2 for="cur_per">ช่วงเวลาที่ใช้ :  ' . $row['st_per'] . ' ถึง ' . $row['en_per'] . '</h2>';
+                                echo '<br>';
+                                echo '<h2 for="cur_per">รายจ่ายรวม : ' . number_format($sumexpc) . ' ฿</h2>';
+                            } else {
+                                echo '<h3>คุณยังไม่ได้เลือกช่วงเวลาในการทำผลผลิต</h3>';
+                            }
+                        }
+                    ?>   
+                </div>
+                <div class="sales">
+                    <?php 
+                        if (isset($_SESSION['user_login'])) {
+                            $user_id = $_SESSION['user_login'];
+                            function getSumByType($conn, $user_id, $add_type, $st_per, $en_per) {
+                                $sql = "SELECT SUM(money) FROM activity WHERE id = :user_id 
+                                        AND add_type = :add_type
+                                        AND atv_date >= :st_per and atv_date <= :en_per";
+                                
+                                $stmt = $conn->prepare($sql);
+                                $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+                                $stmt->bindParam(':add_type', $add_type, PDO::PARAM_STR);
+                                $stmt->bindParam(':st_per', $st_per, PDO::PARAM_STR);
+                                $stmt->bindParam(':en_per', $en_per, PDO::PARAM_STR);
+                                $stmt->execute();
+                                
+                                return $stmt->fetchColumn();
+                            }
+                            
+                            $sumtype1 = getSumByType($conn, $user_id, 'ขายผลผลิต', $row_st_per, $row_en_per);
+                            $sumtype2 = getSumByType($conn, $user_id, 'อื่นๆ', $row_st_per, $row_en_per);
+
+                            echo '<br>';
+                            echo '<h3>ขายผลผลิต: ' . number_format($sumtype1) . ' ฿</h3>';
+                            echo '<br>';
+                            echo '<h3>อื่นๆ : ' . number_format($sumtype2) . ' ฿</h3>';
+                        } 
+                    ?>     
+                </div>
+                <div class="sales"> 
+                    <form class = fil_per action="addd.html" method="post">
+                        <br></br>
+                        <h4>วันที่เริ่มต้น </h4>
+                        <input type="date" id="st_fl" name="st_fl">
+                        <br></br>
+                        <h4>วันที่สิ้นสุด  </h4>
+                        <input type="date" id="en_fl" name="en_fl">
+                        <br></br>
+                        <button type="submit" id="submit" name ="fil_per" >ค้นหา</button> 
+                    </form>
+                </div>
+            </div>
+            <div class="recent-orders">
+                <h2>รายรับ </h2>
+                <div id="table-wrapper">
+                    <div id="table-scroll">
+                      <table>
+                          <thead>
+                              <tr>
+                                <th>วันที่</th>
+                                <th>ประเภทรายการ</th>
+                                <th>จำนวนเงิน</th>
+                                <th>รายละเอียด</th>
+                              </tr>
+                          </thead>
+                          <tbody>
+                            <?php foreach($query1 as $data) {?>
+                                <tr>
+                                    <td><?=$data['atv_date'] ?></td>
+                                    <td><?=$data['add_type'] ?></td>
+                                    <td><?= number_format($data['money']) ?></td>
+                                    <td><?=$data['detail'] ?></td>
+                                </tr>
+                            <?php } ?>
+                          </tbody>
+                      </table>
+                    </div>
+                  </div>
+            </div>
+
+        </main>
+
+        <!-- Right Section -->
+        <div class="right-section">
+            <div class="nav">
+                <div class="profile">
+                    <div class="info">
+                    <?php 
+                        if (isset($_SESSION['user_login'])) {
+                            $user_id = $_SESSION['user_login'];
+                            $stmt = $conn->query("SELECT * FROM users WHERE id = $user_id");
+                            $stmt->execute();
+                            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                            $stmt2 = $conn->query("SELECT * FROM farm WHERE id = $user_id");
+                            $stmt2->execute();
+                            $row2 = $stmt2->fetch(PDO::FETCH_ASSOC);
+                        }
+                    ?>
+                        <p>ผู้ใช้งาน, <b><?php echo $row['username'] ?></b></p>
+                        <small class="text-muted">
+                            <?php echo "({$row2['area']} ไร่ {$row2['garden']} ต้น)"; ?>
+                        </small>
+                    </div>
+                    <div class="profile-photo">
+                        <img src="img/profile-1.jpg">
+                    </div>
+                </div>
+               
+            </div>
+            <!-- End of Nav -->
+
+            <div class="user-profile">
+                <div class="logo">
+                    <img src="img/logo.jpg">
+                    <h2>ทุเรียนแลนด์</h2>
+                    <?php 
+                            if (isset($_SESSION['user_login'])) {
+                                $user_id = $_SESSION['user_login'];
+                                $stmt = $conn->prepare("SELECT st_per, en_per FROM per WHERE id = :user_id AND cur_per = '1'");
+                                $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+                                $stmt->execute();
+
+                                if ($stmt->rowCount() > 0) {
+                                    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                                    echo '<p for="cur_per">' . $row['st_per'] . ' ถึง ' . $row['en_per'] . '</p>';
+                                } else {
+                                    echo '<p>คุณยังไม่ได้เลือกช่วงเวลาในการทำผลผลิต</p>';
+                                }
+                            }
+                        ?>
+                </div>
+            </div>
+
+                
+
+        
+
+        </div>
+    </div>
+
+    <script src="activity.js"></script>
+    <script src="index.js"></script>
+</body>
+
+</html>

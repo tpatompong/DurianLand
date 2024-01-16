@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <title>DurianLand</title>
+</head>
+<body>
+    <?php 
+    session_start();
+    require_once 'config/db.php';
+    if (!isset($_SESSION['user_login'])) {
+        $_SESSION['error'] = 'กรุณาเข้าสู่ระบบ';
+        header('location: index.html');
+    }
+    ?>
+    <div class="container">
+        <!-- Sidebar Section -->
+        <aside>
+            <div class="toggle">
+                <div class="logo">
+                    <img src="img/logo.jpg">
+                    <h2>ทุเรียน<span class="success">แลนด์</span></h2>
+                </div>
+                <div class="close" id="close-btn">
+                    <span class="material-icons-sharp">
+                        close
+                    </span>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <a href="home.html">
+                    <span class="material-icons-sharp">
+                        dashboard
+                    </span>
+                    <h3>แดชบอร์ด</h3>
+                </a>
+        
+                <a href="activity.html">
+                    <span class="material-icons-sharp">
+                        receipt_long
+                    </span>
+                    <h3>บันทึกกิจกรรม</h3>
+                </a>
+             
+                <a href="mkp.html">
+                    <span class="material-icons-sharp">
+                        storefront
+                    </span>
+                    <h3>ค้นหาแหล่งซื้อขาย</h3>
+                </a>
+             
+               
+                <a href="st.php"class="active">
+                    <span class="material-icons-sharp">
+                        settings
+                    </span>
+                    <h3>ตั้งค่า</h3>
+                </a>
+             
+                <a href="index.html">
+                    <span class="material-icons-sharp">
+                        logout
+                    </span>
+                    <h3>ออกจากระบบ</h3>
+                </a>
+            </div>
+        </aside>
+        <!-- End of Sidebar Section -->
+
+        <!-- Main Content -->
+        <main>
+            <h1>ตั้งค่า</h1>
+            <div class="analyse">
+                <div class="sales">
+                    <?php 
+                        if (isset($_SESSION['user_login'])) {
+                            $user_id = $_SESSION['user_login'];
+                            $stmt = $conn->query("SELECT * FROM farm WHERE id = $user_id");
+                            $stmt->execute();
+                            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                            }
+                    ?>
+                    <h2>สวนของฉัน </h2>
+                            <br></br>
+                            <h3 for="fname">ชื่อสวน : <?php echo $row['farm_name'] ?> </h3>
+                            <br></br>
+                            <h3 for="area">พื้นที่ : <?php echo $row['area'] ?>  ไร่</h3>
+                            <br></br>
+                            <h3 for="dl">จำนวนต้นทุเรียน : <?php echo $row['garden'] ?>  ต้น</h3>
+                            <br></br>
+                            <h3 for="gyear">ผลผลิตเฉลี่ยปีก่อนหน้า : <?php echo $row['avg_dl'] ?>  ตัน</h3>
+                            <br></br>
+
+                </div>
+                <div class="sales">
+                    <h2>แก้ไขสวน</h2>
+                    <form class="farm_e" action="farm_e.php" method="post">
+                        <br></br>
+                        <?php 
+                            if (isset($_SESSION['user_login'])) {
+                                $user_id = $_SESSION['user_login'];
+                                $stmt = $conn->query("SELECT * FROM farm WHERE id = $user_id");
+                                $stmt->execute();
+                                $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                                }
+                        ?>
+                        <h4 for="fname">ชื่อสวน : <?php echo $row['farm_name'] ?> </h4>
+                        <br></br>
+                        <h4 for="area" >พื้นที่ : </h4>
+                        <input type="text" id="area" name="area" required>
+                        <h4 >ไร่</h4>
+                        <br></br>
+                        <h4 for="garden" >จำนวนต้นทุเรียน : </h4>
+                        <input type="text" id="garden" name="garden" required>
+                        <h4 >ต้น</h4>
+                        <br></br>
+                        <h4 for="avg_dl" >ผลผลิตเฉลี่ยปีก่อนหน้า : </h4>
+                        <input type="text" id="avg_dl" name="avg_dl" required>
+                        <h4 >ตัน</h4>
+                        <br></br>
+                        <button>บันทึก</button>
+                        <br></br>
+                </form>        
+                </div>          
+               
+            </div>
+            
+            
+        </main>
+
+        <!-- Right Section -->
+        <div class="right-section">
+            <div class="nav">
+                <div class="profile">
+                    <div class="info">
+                    <?php 
+                        if (isset($_SESSION['user_login'])) {
+                            $user_id = $_SESSION['user_login'];
+                            $stmt = $conn->query("SELECT * FROM users WHERE id = $user_id");
+                            $stmt->execute();
+                            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                            $stmt2 = $conn->query("SELECT * FROM farm WHERE id = $user_id");
+                            $stmt2->execute();
+                            $row2 = $stmt2->fetch(PDO::FETCH_ASSOC);
+                        }
+                    ?>
+                        <p>ผู้ใช้งาน, <b><?php echo $row['username'] ?></b></p>
+                        <small class="text-muted">
+                            <?php echo "({$row2['area']} ไร่ {$row2['garden']} ต้น)"; ?>
+                        </small>
+                    </div>
+                    <div class="profile-photo">
+                        <img src="img/profile-1.jpg">
+                    </div>
+                </div>
+               
+            </div>
+            <!-- End of Nav -->
+
+            <div class="user-profile">
+                <div class="logo">
+                    <img src="img/logo.jpg">
+                    <h2>ทุเรียนแลนด์</h2>
+                    <?php 
+                            if (isset($_SESSION['user_login'])) {
+                                $user_id = $_SESSION['user_login'];
+                                $stmt = $conn->prepare("SELECT st_per, en_per FROM per WHERE id = :user_id AND cur_per = '1'");
+                                $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+                                $stmt->execute();
+
+                                if ($stmt->rowCount() > 0) {
+                                    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                                    echo '<p for="cur_per">' . $row['st_per'] . ' ถึง ' . $row['en_per'] . '</p>';
+                                } else {
+                                    echo '<p>คุณยังไม่ได้เลือกช่วงเวลาในการทำผลผลิต</p>';
+                                }
+                            }
+                        ?>
+                </div>
+            </div>
+
+                
+
+        
+
+        </div>
+    </div>
+
+    <script src="orders.js"></script>
+    <script src="index.js"></script>
+</body>
+
+</html>

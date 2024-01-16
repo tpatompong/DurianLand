@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <title>DurianLand</title>
+</head>
+<body>
+    <?php 
+    session_start();
+    require_once 'config/db.php';
+    if (!isset($_SESSION['user_login'])) {
+        $_SESSION['error'] = 'กรุณาเข้าสู่ระบบ';
+        header('location: index.html');
+    }
+    else{
+        $user_id = $_SESSION['user_login'];
+        $sql1 = "SELECT * FROM activity WHERE id = $user_id 
+        AND add_type != 'ขายผลผลิต' AND add_type != 'อื่นๆ' ORDER BY atv_date DESC LIMIT 9";
+        $sql2 = "SELECT * FROM activity WHERE id = $user_id 
+        AND (add_type = 'ขายผลผลิต' OR add_type = 'อื่นๆ') ORDER BY atv_date DESC LIMIT 9";
+        $query1 = $conn->query($sql1);
+        $query2 = $conn->query($sql2);
+    }
+    ?>
+    <div class="container">
+        <!-- Sidebar Section -->
+        <aside>
+            <div class="toggle">
+                <div class="logo">
+                    <img src="img/logo.jpg">
+                    <h2>ทุเรียน<span class="success">แลนด์</span></h2>
+                </div>
+                <div class="close" id="close-btn">
+                    <span class="material-icons-sharp">
+                        close
+                    </span>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <a href="home.html">
+                    <span class="material-icons-sharp">
+                        dashboard
+                    </span>
+                    <h3>แดชบอร์ด</h3>
+                </a>
+        
+                <a href="activity.html" class="active">
+                    <span class="material-icons-sharp">
+                        receipt_long
+                    </span>
+                    <h3>บันทึกกิจกรรม</h3>
+                </a>
+             
+                <a href="mkp.html">
+                    <span class="material-icons-sharp">
+                        storefront
+                    </span>
+                    <h3>ค้นหาแหล่งซื้อขาย</h3>
+                </a>
+             
+               
+                <a href="st.php">
+                    <span class="material-icons-sharp">
+                        settings
+                    </span>
+                    <h3>ตั้งค่า</h3>
+                </a>
+                <a href="#">
+             
+                <a href="index.html">
+                    <span class="material-icons-sharp">
+                        logout
+                    </span>
+                    <h3>ออกจากระบบ</h3>
+                </a>
+            </div>
+        </aside>
+        <!-- End of Sidebar Section -->
+
+          <!-- Main Content -->
+          <main>
+            <div class="analyse">
+                <div class="sales">
+                    <h1>เพิ่มรายจ่าย</h1>                 
+                        <form class = add_exp action="atv_add.php" method="post">
+                            <br></br>
+                            <h4>วันที่ </h4>
+                            <input type="date" id="atv_date" name="atv_date">
+                            <br></br>
+                            <h4 for="list">ประเภทของรายการ</h4>
+                            <select id="add_type" name="add_type">
+                                <option value="ค่าปุ๋ย">ค่าปุ๋ย</option>
+                                <option value="ค่าน้ำ">ค่าน้ำ</option>
+                                <option value="ค่าไฟ">ค่าไฟ</option>
+                                <option value="ค่าจ้างคนงาน">ค่าจ้างคนงาน</option>
+                                <option value="ค่ายากำจัดศัตรูพืช">ค่ายากำจัดศัตรูพืช</option>
+                                <option value="ค่าซ่อมแซมอุปกรณ์">ค่าซ่อมแซมอุปกรณ์</option>
+                                <option value="ค่าใช้จ่ายอื่นๆ">ค่าใช้จ่ายอื่นๆ</option>
+                            </select>
+                            <br></br>
+                            <h4 for="money">รายจ่าย</h4>
+                            <input type="text" id="money" name="money" ></input>
+                            <h4 >บาท</h4>
+                            <br></br>
+                            <h4 for="lname">รายละเอียด</h4>
+                            <br></br>
+                            <textarea id="detail" name="detail" placeholder="กรอกรายละเอียด" style="height:200px"></textarea>
+                            <br></br>
+                            <button type="submit" id="submit" name ="add_exp" >บันทึก</button> 
+                        </form>
+                </div>
+
+                <div class="recent-orders">
+                    <h1>รายจ่ายล่าสุด</h1>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>วันที่</th>
+                                <th>ประเภทรายการ</th>
+                                <th>จำนวนเงิน</th>
+                                <th>รายละเอียด</th>
+                            </tr>
+    
+                            <?php foreach($query1 as $data) {?>
+                                <tr>
+                                    <td><?=$data['atv_date'] ?></td>
+                                    <td><?=$data['add_type'] ?></td>
+                                    <td><?= number_format($data['money']) ?></td>
+                                    <td><?=$data['detail'] ?></td>
+                                </tr>
+                            <?php } ?>
+                            </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                
+                
+            
+            
+        </main>
+        <!-- Right Section -->
+        <div class="right-section">
+            <div class="nav">
+                <div class="profile">
+                    <div class="info">
+                    <?php 
+                        if (isset($_SESSION['user_login'])) {
+                            $user_id = $_SESSION['user_login'];
+                            $stmt = $conn->query("SELECT * FROM users WHERE id = $user_id");
+                            $stmt->execute();
+                            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                            $stmt2 = $conn->query("SELECT * FROM farm WHERE id = $user_id");
+                            $stmt2->execute();
+                            $row2 = $stmt2->fetch(PDO::FETCH_ASSOC);
+                        }
+                    ?>
+                        <p>ผู้ใช้งาน, <b><?php echo $row['username'] ?></b></p>
+                        <small class="text-muted">
+                            <?php echo "({$row2['area']} ไร่ {$row2['garden']} ต้น)"; ?>
+                        </small>
+                    </div>
+                    <div class="profile-photo">
+                        <img src="img/profile-1.jpg">
+                    </div>
+                </div>
+               
+            </div>
+            <!-- End of Nav -->
+
+            <div class="user-profile">
+                <div class="logo">
+                    <img src="img/logo.jpg">
+                    <h2>ทุเรียนแลนด์</h2>
+                    <?php 
+                            if (isset($_SESSION['user_login'])) {
+                                $user_id = $_SESSION['user_login'];
+                                $stmt = $conn->prepare("SELECT st_per, en_per FROM per WHERE id = :user_id AND cur_per = '1'");
+                                $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+                                $stmt->execute();
+
+                                if ($stmt->rowCount() > 0) {
+                                    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                                    echo '<p for="cur_per">' . $row['st_per'] . ' ถึง ' . $row['en_per'] . '</p>';
+                                } else {
+                                    echo '<p>คุณยังไม่ได้เลือกช่วงเวลาในการทำผลผลิต</p>';
+                                }
+                            }
+                        ?>
+                </div>
+            </div>
+
+                
+
+        
+
+        </div>
+    </div>
+
+    <script src="activity.js"></script>
+    <script src="index.js"></script>
+</body>
+
+</html>

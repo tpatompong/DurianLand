@@ -1,0 +1,6 @@
+        <select id="operators">
+            <option value="+">+</option>
+            <option value="-">-</option>
+            <option value="/">/</option>
+            <option value="X">X</option>
+        </select>

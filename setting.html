@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <title>DurianLand</title>
+</head>
+<body>
+    <?php 
+    session_start();
+    require_once 'config/db.php';
+    if (!isset($_SESSION['user_login'])) {
+        $_SESSION['error'] = 'กรุณาเข้าสู่ระบบ';
+        header('location: index.html');
+    }
+    ?>
+    <div class="container">
+        <!-- Sidebar Section -->
+        <aside>
+            <div class="toggle">
+                <div class="logo">
+                    <img src="img/logo.jpg">
+                    <h2>ทุเรียน<span class="success">แลนด์</span></h2>
+                </div>
+                <div class="close" id="close-btn">
+                    <span class="material-icons-sharp">
+                        close
+                    </span>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <a href="home.html">
+                    <span class="material-icons-sharp">
+                        dashboard
+                    </span>
+                    <h3>แดชบอร์ด</h3>
+                </a>
+        
+                <a href="activity.html">
+                    <span class="material-icons-sharp">
+                        receipt_long
+                    </span>
+                    <h3>บันทึกกิจกรรม</h3>
+                </a>
+             
+                <a href="mkp.html">
+                    <span class="material-icons-sharp">
+                        storefront
+                    </span>
+                    <h3>ค้นหาแหล่งซื้อขาย</h3>
+                </a>
+             
+               
+                <a href="st.php"class="active">
+                    <span class="material-icons-sharp">
+                        settings
+                    </span>
+                    <h3>ตั้งค่า</h3>
+                </a>
+             
+                <a href="index.html">
+                    <span class="material-icons-sharp">
+                        logout
+                    </span>
+                    <h3>ออกจากระบบ</h3>
+                </a>
+            </div>
+        </aside>
+        <!-- End of Sidebar Section -->
+
+        <!-- Main Content -->
+        <main>
+            <h1>ตั้งค่า</h1>
+            <div class="analyse">
+                <div class="sales">
+                    <h2>บัญชี</h2>
+                            <br></br>
+                            <?php 
+                                if (isset($_SESSION['user_login'])) {
+                                    $user_id = $_SESSION['user_login'];
+                                    $stmt = $conn->query("SELECT * FROM users WHERE id = $user_id");
+                                    $stmt->execute();
+                                    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                                }
+                            ?>
+                            <h3>ชื่อผู้ใช้งาน :  <?php echo $row['username'] ?></h3>
+                            <br></br>
+                            <h3 for="psw" ">รหัสผ่าน : xxxxxxxxxxxxxx </h3>
+                            <br></br> 
+                            <h3>เป็นสมาชิกตั้งแต่ :  <?php echo $row['create_at'] ?></h3>
+                            <br></br>
+                            <a href="psw.html">
+                                <button>แก้ไขรหัสผ่าน</button>
+                            </a>
+                            <br></br>        
+                </div> 
+           
+                <div class="sales" >
+                    <h2 style="text-align:center; ">ยังไม่มีข้อมูลสวนในระบบ</h2>  
+                    <h2 style="text-align:center; ">ระบบกรุณาเพิ่มข้อมูลก่อนใช้งาน</h2> 
+                    <br></br>
+                    <br></br>
+                    <a href="setting1_add.html">
+                        <h2 for="edit" style="text-align:center; color:#6C9BCF;" > กดเพื่อเพิ่มสวน  </h2>
+                    </a>
+                </div>  
+           
+               
+            </div>
+            
+            
+        </main>
+
+        <!-- Right Section -->
+        <div class="right-section">
+            <div class="nav">
+                <div class="profile">
+                    <div class="info">
+                    <?php 
+                        if (isset($_SESSION['user_login'])) {
+                            $user_id = $_SESSION['user_login'];
+                            $stmt = $conn->query("SELECT * FROM users WHERE id = $user_id");
+                            $stmt->execute();
+                            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                            $stmt2 = $conn->query("SELECT * FROM farm WHERE id = $user_id");
+                            $stmt2->execute();
+                            $row2 = $stmt2->fetch(PDO::FETCH_ASSOC);
+                        }
+                    ?>
+                        <p>ผู้ใช้งาน, <b><?php echo $row['username'] ?></b></p>
+                        <small class="text-muted">
+
+                        </small>
+                    </div>
+                    <div class="profile-photo">
+                        <img src="img/profile-1.jpg">
+                    </div>
+                </div>
+               
+            </div>
+            <!-- End of Nav -->
+
+            <div class="user-profile">
+                <div class="logo">
+                    <img src="img/logo.jpg">
+                    <h2>ทุเรียนแลนด์</h2>
+                    <?php 
+                            if (isset($_SESSION['user_login'])) {
+                                $user_id = $_SESSION['user_login'];
+                                $stmt = $conn->prepare("SELECT st_per, en_per FROM per WHERE id = :user_id AND cur_per = '1'");
+                                $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+                                $stmt->execute();
+
+                                if ($stmt->rowCount() > 0) {
+                                    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                                    echo '<p for="cur_per">' . $row['st_per'] . ' ถึง ' . $row['en_per'] . '</p>';
+                                } else {
+                                    echo '<p>คุณยังไม่ได้เลือกช่วงเวลาในการทำผลผลิต</p>';
+                                }
+                            }
+                        ?>
+                </div>
+            </div>
+
+                
+
+        
+
+        </div>
+    </div>
+
+    <script src="orders.js"></script>
+    <script src="index.js"></script>
+</body>
+
+</html>
